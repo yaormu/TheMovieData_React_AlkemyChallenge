@@ -13,40 +13,63 @@ import NotFound from "./components/NotFound"
 // Styles
 import "./css/bootstrap.min.css";
 import "./css/app.css";
+import Favoritos from "./components/Favoritos";
 
 function App() {
-
+  // El objetivo de tener esta funcionalidad del elemento padre para poderla compartir 
+  // posteriormente con el compononetes Resultados y Listados
   const addOrRemoveFromFavs = movieData => e => {
-    console.log(movieData);
+    const favMovies =  localStorage.getItem('favs'); // Obtener contenido del localStorage
+
+    let tempMoviesInFavs; // Obtendra valores de acuerdo al localStorage
+
+    if (favMovies === null) {
+      tempMoviesInFavs = []
+    } else {
+      tempMoviesInFavs = JSON.parse(favMovies);
+    }
+      
+    const btn = e.currentTarget; 
+    const parent = btn.parentElement; // Obtener el elemento padre del boton
+    const imgURL = parent.querySelector('img').getAttribute('src'); // Capturar el elemento src de la img
+    const title = parent.querySelector('h5').innerText;
+    const overview = parent.querySelector('p').innerText;
+    const movieDataObtenida = { // Al tener el mismo nombre key no hay necesidad declarar imgURL: imgURL
+      imgURL, title, overview,
+      id: btn.dataset.movieId,
+    }
+
+    let moviesIsInArray = tempMoviesInFavs.find(oneMovie => { // Filtrar con id y no repetir
+      return oneMovie.id === movieDataObtenida.id
+    });
+
+    if (!moviesIsInArray) { // Si no esta la pelicula la ingresamos
+      tempMoviesInFavs.push(movieDataObtenida); // Insertar información a movieDataObtenida
+      localStorage.setItem('favs', JSON.stringify(tempMoviesInFavs)) // Insertar datos al localStorage
+      console.log('Se agrego la pelicula')
+    } // Si esta la pelicula la sacamos
+    else {
+      let moviesLeft = tempMoviesInFavs.filter(oneMovie => {
+        return oneMovie.id !== movieDataObtenida.id;
+      });
+      localStorage.setItem('favs', JSON.stringify(moviesLeft));
+      console.log("Se elimino la pelicula");
+    }
   }
 
-  // Función para capturar opcion añadir o quitar de 💛 favoritos, se pasara mediante props a los hijos
-  // const addOrRemoveFromFavs = e => {
-    // capturar elementos
-    //const btn = e.currentTarget;  // console.log(btn);
-    // Capturar el elemnto padre donde esta el boton, que seria un div
-    // const parent = btn.parentElement; // console.log(parent)
-    // const imgURL = parent.querySelector('img').getAttribute('src'); // Capturar el elemento src de la img
-    // const title = parent.querySelector('h5').innerText;
-    // const overview = parent.querySelector('p').innerText;
-    // Objeto que recoga todos los valores
-    // const movieData = {
-    //  imgURL, title, overview
-    // }
-    // console.log(movieData);
-  // }
-
-  
-
-  return (
+return (
     <>
       <Header />
       <div className="container mt-3">
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/listado" element={<Listado addOrRemoveFromFavs={addOrRemoveFromFavs} />} />
+          <Route 
+            path="/listado" 
+            element={<Listado addOrRemoveFromFavs={addOrRemoveFromFavs} />} 
+          />
           <Route path="/detalle" element={<Detalle />} />
           <Route  path="/resultados" element={<Resultados />} />
+          <Route  path="/favoritos" element={<Favoritos />} />
           <Route path="*" element={<NotFound />} /> 
         </Routes>
       </div>
